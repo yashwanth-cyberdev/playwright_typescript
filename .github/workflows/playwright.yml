@@ -81,12 +81,6 @@ jobs:
         with:
           path: "./playwright-report"
 
-      - name: Fail the job if there are any failed cases
-        if: steps.tests.outputs.fail_count != '0'
-        run: |
-          echo "There are ${{ steps.tests.outputs.fail_count }} failed tests." # Including the fail count
-          exit 1
-
     outputs:
       fail_count: ${{ steps.tests.outputs.fail_count }}
 

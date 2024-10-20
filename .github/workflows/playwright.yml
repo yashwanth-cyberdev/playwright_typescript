@@ -1,100 +1,94 @@
-name: Test execution on GitHub server
-
+name: Playwright Tests
 on:
-  pull_request:
-    branches: [main]
   push:
-    branches: [main]
-  workflow_dispatch:
-
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
 jobs:
   test:
-    permissions:
-      contents: write
-      pull-requests: write
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    continue-on-error: true
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-          key: modules-${{ hashFiles('package-lock.json') }}
-
-      - name: Cache Playwright Binaries
-        id: cache-playwright
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/ms-playwright
-          key: playwright-${{ hashFiles('package-lock.json') }}
-
+          node-version: lts/*
       - name: Install dependencies
-        id: install-dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci
-
       - name: Install Playwright Browsers
-        id: install-playwright-browsers
-        if: steps.cache-playwright.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps
-
       - name: Run Playwright tests
-        continue-on-error: true
-        run: |
-          npx playwright test
-
-      - name: Get the failure count
-        id: tests
-        run: |
-          export count=$(cat ./playwright-report/result.txt | grep Failed | cut -d ':' -f 2 | tr -d ' ')
-          echo "fail_count=$count" >> "$GITHUB_OUTPUT"
-          echo "Fail count: $count" # Logging the fail count for visibility
-
-      - uses: mshick/add-pr-comment@v2
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
-          message-path: |
-            ./playwright-report/result.txt
-          message-failure: |
-            Workflow failed
-
-      - name: Setup Pages
-        if: steps.tests.outputs.fail_count != '0'
-        uses: actions/configure-pages@v4
-
-      - name: Upload Artifact
-        if: steps.tests.outputs.fail_count != '0'
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: "./playwright-report"
-
-    outputs:
-      fail_count: ${{ steps.tests.outputs.fail_count }}
-
-  deploy:
-    if: needs.test.outputs.fail_count != '0'
-    needs: test
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: playwright-report
+          destination_dir: ${{ github.sha }}
+
+      - name: Create deployment status with report link
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/${context.sha}/`;
+            const message = `Playwright Test Report available at: ${reportUrl}`;
+
+            // This will log the report URL in the console
+            console.log(message);
+
+            // Optionally, you can create a comment on the PR if it's a pull request
+            if (context.eventName === 'pull_request') {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: message
+              });
+            }
+
+      - name: Cleanup old reports
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const { data: branch } = await github.rest.repos.getBranch({
+              owner,
+              repo,
+              branch: 'gh-pages',
+            });
+            const { data: tree } = await github.rest.git.getTree({
+              owner,
+              repo,
+              tree_sha: branch.commit.sha,
+              recursive: 'true'
+            });
+            const now = new Date();
+            const oldReports = tree.tree
+              .filter(item => item.type === 'tree' && /^[a-f0-9]{40}$/.test(item.path))
+              .filter(item => {
+                const reportDate = new Date(item.path.substring(0, 10));
+                const daysDiff = (now - reportDate) / (1000 * 60 * 60 * 24);
+                return daysDiff > 30;
+              })
+              .map(item => item.path);
+            if (oldReports.length > 0) {
+              await github.rest.repos.createOrUpdateFileContents({
+                owner,
+                repo,
+                path: '.cleanup',
+                message: 'Cleanup old reports',
+                content: Buffer.from(oldReports.join('\n')).toString('base64'),
+                branch: 'gh-pages',
+              });
+            }

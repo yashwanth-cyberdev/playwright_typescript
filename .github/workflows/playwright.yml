@@ -1,4 +1,5 @@
 name: Test execution on GitHub server
+
 on:
   pull_request:
     branches: [main]
@@ -28,14 +29,16 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v4
         with:
-          path: node_modules
+          path: |
+            node_modules
           key: modules-${{ hashFiles('package-lock.json') }}
 
       - name: Cache Playwright Binaries
         id: cache-playwright
         uses: actions/cache@v4
         with:
-          path: ~/.cache/ms-playwright
+          path: |
+            ~/.cache/ms-playwright
           key: playwright-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
@@ -50,24 +53,27 @@ jobs:
 
       - name: Run Playwright tests
         continue-on-error: true
-        run: npx playwright test
+        run: |
+          npx playwright test
 
       - name: Get the failure count
         id: tests
         run: |
           export count=$(cat ./playwright-report/result.txt | grep Failed | cut -d ':' -f 2 | tr -d ' ')
           echo "fail_count=$count" >> "$GITHUB_OUTPUT"
-          echo "Fail count: $count"
+          echo "Fail count: $count" # Logging the fail count for visibility
 
       - uses: mshick/add-pr-comment@v2
         if: always()
         with:
-          message-path: ./playwright-report/result.txt
-          message-failure: Workflow failed
+          message-path: |
+            ./playwright-report/result.txt
+          message-failure: |
+            Workflow failed
 
       - name: Setup Pages
         if: steps.tests.outputs.fail_count != '0'
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v4
 
       - name: Upload Artifact
         if: steps.tests.outputs.fail_count != '0'
@@ -78,7 +84,7 @@ jobs:
       - name: Fail the job if there are any failed cases
         if: steps.tests.outputs.fail_count != '0'
         run: |
-          echo "There are ${{ steps.tests.outputs.fail_count }} failed tests."
+          echo "There are ${{ steps.tests.outputs.fail_count }} failed tests." # Including the fail count
           exit 1
 
     outputs:

@@ -81,6 +81,7 @@ jobs:
       - name: Fail the job if there are any failed cases
         if: steps.tests.outputs.fail_count != '0'
         run: |
+          echo "There are ${{ steps.tests.outputs.fail_count }} failed tests."
           exit 1
 
     outputs:

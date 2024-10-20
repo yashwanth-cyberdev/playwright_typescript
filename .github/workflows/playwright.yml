@@ -1,4 +1,4 @@
-name: Test execution on Github server
+name: Test execution on GitHub server
 on:
   pull_request:
     branches: [main]
@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -28,16 +28,14 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v4
         with:
-          path: |
-            node_modules
+          path: node_modules
           key: modules-${{ hashFiles('package-lock.json') }}
 
       - name: Cache Playwright Binaries
         id: cache-playwright
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cache/ms-playwright
+          path: ~/.cache/ms-playwright
           key: playwright-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
@@ -52,15 +50,14 @@ jobs:
 
       - name: Run Playwright tests
         continue-on-error: true
-        run: |
-          npx playwright test
+        run: npx playwright test
 
       - name: Get the failure count
         id: tests
         run: |
           export count=$(cat ./playwright-report/result.txt | grep Failed | cut -d ':' -f 2 | tr -d ' ')
           echo "fail_count=$count" >> "$GITHUB_OUTPUT"
-          echo $count
+          echo "Fail count: $count"
 
       - uses: mshick/add-pr-comment@v2
         if: always()

@@ -34,26 +34,7 @@ jobs:
           destination_dir: ${{ github.sha }}
 
       - name: Create deployment status with report link
-        if: always()
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/${context.sha}/`;
-            const message = `Playwright Test Report available at: ${reportUrl}`;
-
-            // This will log the report URL in the console
-            console.log(message);
-
-            // Optionally, you can create a comment on the PR if it's a pull request
-            if (context.eventName === 'pull_request') {
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: message
-              });
-            }
+        run: echo "Playwright report available at https://${context.repo.owner}.github.io/${context.repo.repo}/${context.sha}/"
 
       - name: Cleanup old reports
         if: always()

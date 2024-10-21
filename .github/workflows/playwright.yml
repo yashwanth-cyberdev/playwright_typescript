@@ -33,7 +33,7 @@ jobs:
           publish_dir: playwright-report
           destination_dir: ${{ github.sha }}
 
-      - name: Create deployment status with report link
+      - name: Generate and log Playwright report URL
         if: always()
         run: |
           repo_name=${{ github.repository }} && repo_name=${repo_name#*/}

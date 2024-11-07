@@ -4,21 +4,42 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+
+env:
+  NODE_VERSION: "20.10.0"
+
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Playwright Browsers
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+        if: github.event_name == 'pull_request'
+
+      - uses: actions/checkout@v4
+        if: github.event_name != 'pull_request'
+
+      - name: Fetch base branch for comparison
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci
+      - name: Install Playwright
         run: npx playwright install --with-deps
-      - name: Run Playwright tests
-        run: npx playwright test
+
+      - name: Run Changed files only
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Running tests for changes between ${{ github.base_ref }} and current branch"
+          npx playwright test --project=tests --only-changed=${{ github.base_ref }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:

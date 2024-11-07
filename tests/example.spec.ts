@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
+import { Assert } from "../pageObjects/assert";
 
 test("has title", async ({ page }) => {
+  const assert = new Assert(page);
   await page.goto("https://playwright.dev/");
 
   // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
+  await assert.assertHeader();
 });
 
 test("get started link", async ({ page }) => {

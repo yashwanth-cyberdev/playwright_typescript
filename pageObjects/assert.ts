@@ -8,7 +8,6 @@ export class Assert {
   }
 
   async assertHeader() {
-    console.log("fail-fast");
     await expect(this.page).toHaveTitle(/Playwright/);
   }
 }

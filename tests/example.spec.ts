@@ -9,7 +9,7 @@ test("has title", async ({ page }) => {
   await assert.assertHeader();
 });
 
-test("get started link", async ({ page }) => {
+test("get started link new file", async ({ page }) => {
   await page.goto("https://playwright.dev/");
 
   // Click the get started link.

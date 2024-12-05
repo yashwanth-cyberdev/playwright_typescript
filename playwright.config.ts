@@ -34,7 +34,7 @@ const config: PlaywrightTestConfig = {
   /* Configure projects for major browsers */
   projects: [
     {
-      name: "api-tests",
+      name: "tests",
       testDir: "./tests",
       use: {
         ...devices["Desktop Chrome"],

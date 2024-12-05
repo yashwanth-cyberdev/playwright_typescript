@@ -7,8 +7,6 @@ on:
 
 env:
   NODE_VERSION: "20.10.0"
-  BASE_URL: ${{ secrets.BASE_URL }}
-  USER_NAME: ${{ secrets.USER_NAME }}
 
 jobs:
   test:
@@ -45,6 +43,9 @@ jobs:
 
       - name: Run regression only
         if: github.event_name == 'push'
+        env:
+          BASE_URL: ${{ secrets.BASE_URL }}
+          USER_NAME: ${{ secrets.USER_NAME }}
         run: |
           TAGS='@regression' npx playwright test --project=tests
 

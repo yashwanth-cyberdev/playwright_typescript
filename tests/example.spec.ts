@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { Assert } from "../pageObjects/assert";
 
-//  testing out this comment
+//  testing out this comment to be fixed
 
 test("has title", async ({ page }) => {
   const assert = new Assert(page);

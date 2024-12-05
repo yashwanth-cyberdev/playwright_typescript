@@ -36,7 +36,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Changed files only
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'push'
         run: |
           echo "Running tests for changes between ${{ github.base_ref }} and current branch"
           npx playwright test --only-changed=${{ github.base_ref }}

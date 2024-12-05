@@ -40,7 +40,7 @@ jobs:
         run: |
           echo "Running tests for changes between ${{ github.base_ref }} and current branch"
           npx playwright test --only-changed=${{ github.base_ref }}
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: playwright-report

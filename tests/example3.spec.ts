@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
 
-test("get started link new file", async ({ page }) => {
-  await page.goto("https://playwright.dev/");
+test("@regression this is regression get started link new file", async ({
+  page,
+}) => {
+  await page.goto(process.env.BASE_URL!);
 
   // Click the get started link.
   await page.getByRole("link", { name: "Get started" }).click();
@@ -13,7 +15,7 @@ test("get started link new file", async ({ page }) => {
 });
 
 test("duplicate", async ({ page }) => {
-  await page.goto("https://playwright.dev/");
+  await page.goto(process.env.BASE_URL!);
 
   // Click the get started link.
   await page.getByRole("link", { name: "Get started" }).click();

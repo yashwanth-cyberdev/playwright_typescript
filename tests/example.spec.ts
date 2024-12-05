@@ -5,17 +5,19 @@ import { Assert } from "../pageObjects/assert";
 
 test("has title", async ({ page }) => {
   const assert = new Assert(page);
-  await page.goto("https://playwright.dev/");
+  await page.goto(process.env.BASE_URL!);
+  console.log(`This is base url here ${"/"}`);
 
   // Expect a title "to contain" a substring.
   await assert.assertHeader();
 });
 
-test("get started link new file", async ({ page }) => {
-  await page.goto("https://playwright.dev/");
+test("@regression get started link new file", async ({ page }) => {
+  await page.goto(process.env.BASE_URL!);
 
   // Click the get started link.
   await page.getByRole("link", { name: "Get started" }).click();
+  console.log(process.env.USER_NAME! + " is  a hero");
 
   // Expects page to have a heading with the name of Installation.
   await expect(
@@ -24,7 +26,7 @@ test("get started link new file", async ({ page }) => {
 });
 
 test("duplicate", async ({ page }) => {
-  await page.goto("https://playwright.dev/");
+  await page.goto(process.env.BASE_URL!);
 
   // Click the get started link.
   await page.getByRole("link", { name: "Get started" }).click();

@@ -7,6 +7,8 @@ on:
 
 env:
   NODE_VERSION: "20.10.0"
+  BASE_URL: ${{ secrets.BASE_URL }}
+  USER_NAME: ${{ secrets.USER_NAME }}
 
 jobs:
   test:
@@ -36,10 +38,16 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Changed files only
-        if: github.event_name == 'push'
+        if: github.event_name == 'pull_request'
         run: |
           echo "Running tests for changes between ${{ github.base_ref }} and current branch"
           npx playwright test --only-changed=${{ github.base_ref }}
+
+      - name: Run regression only
+        if: github.event_name == 'push'
+        run: |
+          TAGS='@regression' npx playwright test --project=tests
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -59,7 +59,7 @@ jobs:
 
       - name: Generate timestamp
         id: timestamp
-        run: echo "current_time=$(date +'%Y_%m_%d_%H_%M_%S')" >> $GITHUB_ENV
+        run: echo "::set-output name=current_time::$(date +'%Y_%m_%d_%H_%M_%S')"
 
       - name: Deploy to GitHub Pages
         if: always()

@@ -56,19 +56,24 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+
+      - name: Generate timestamp
+        id: timestamp
+        run: echo "current_time=$(date +'%Y_%m_%d_%H_%M_%S')" >> $GITHUB_ENV
+
       - name: Deploy to GitHub Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: playwright-report
-          destination_dir: "${{ github.sha }}-$(date +'%Y_%m_%d_%H_%M_%S')"
+          destination_dir: ${{ github.sha }}-${{ steps.timestamp.outputs.current_time }}
 
       - name: Generate and log Playwright report URL
         if: always()
         run: |
           repo_name=${{ github.repository }} && repo_name=${repo_name#*/}
-          reportUrl="https://${{ github.repository_owner }}.github.io/$repo_name/${{ github.sha }}/"
+          reportUrl="https://${{ github.repository_owner }}.github.io/$repo_name/${{ github.sha }}-${{ steps.timestamp.outputs.current_time }}/"
           echo "Playwright Test Report available at: $reportUrl"
 
       - name: Cleanup old reports

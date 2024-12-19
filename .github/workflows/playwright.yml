@@ -15,13 +15,11 @@ jobs:
     environment: production
     runs-on: ubuntu-latest
 
-    # Add required permissions for GitHub Pages
     permissions:
       contents: write
       pages: write
       id-token: write
 
-    # Add concurrency group for pages
     concurrency:
       group: "pages"
       cancel-in-progress: true
@@ -72,7 +70,6 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-      # Setup Pages
       - name: Setup Pages
         if: always()
         uses: actions/configure-pages@v4
@@ -81,14 +78,13 @@ jobs:
         id: timestamp
         run: echo "timestamp=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_OUTPUT
 
-      # Upload artifact for Pages
+      # Upload and deploy to GitHub Pages (new way)
       - name: Upload Pages artifact
         if: always()
         uses: actions/upload-pages-artifact@v3
         with:
           path: playwright-report/
 
-      # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         if: always()
         uses: actions/deploy-pages@v4
@@ -97,9 +93,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate and log Playwright report URL
+      # Deploy to gh-pages branch (maintaining old way)
+      - name: Deploy to gh-pages branch
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: playwright-report
+          destination_dir: ${{ github.sha }}-${{ steps.timestamp.outputs.timestamp }}
+          keep_files: true
+
+      - name: Generate and log Playwright report URLs
         if: always()
         run: |
           repo_name=${{ github.repository }} && repo_name=${repo_name#*/}
-          reportUrl="https://${{ github.repository_owner }}.github.io/$repo_name/"
-          echo "Playwright Test Report available at: $reportUrl"
+          pages_url="https://${{ github.repository_owner }}.github.io/$repo_name/"
+          branch_url="https://${{ github.repository_owner }}.github.io/$repo_name/${{ github.sha }}-${{ steps.timestamp.outputs.timestamp }}/"
+          echo "Playwright Test Report (Pages) available at: $pages_url"
+          echo "Playwright Test Report (Branch) available at: $branch_url"

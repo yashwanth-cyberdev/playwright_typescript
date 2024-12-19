@@ -93,14 +93,71 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Deploy to gh-pages branch (maintaining old way)
+      # Cleanup old directories from gh-pages branch
+      - name: Checkout gh-pages branch
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-branch
+
+      - name: Clean up old directories
+        if: always()
+        working-directory: gh-pages-branch
+        run: |
+          # Get current timestamp
+          current_timestamp=$(date +%s)
+          # 3 days in seconds
+          cutoff_seconds=$((3 * 24 * 60 * 60))
+
+          # Create an array to store directories to delete
+          declare -a dirs_to_delete
+
+          # Find directories older than 3 days
+          for dir in */; do
+            if [[ $dir == *-20* ]]; then  # Only process timestamp directories
+              # Extract the timestamp part (assuming format: sha-YYYY-MM-DD-HH-MM-SS)
+              dir_date=$(echo $dir | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}-[0-9]\{2\}-[0-9]\{2\}-[0-9]\{2\}')
+              if [ ! -z "$dir_date" ]; then
+                # Convert directory date to timestamp
+                dir_timestamp=$(date -d "${dir_date//-/ }" +%s 2>/dev/null)
+                if [ ! -z "$dir_timestamp" ]; then
+                  # Calculate age in seconds
+                  age=$((current_timestamp - dir_timestamp))
+                  if [ $age -gt $cutoff_seconds ]; then
+                    dirs_to_delete+=("$dir")
+                  fi
+                fi
+              fi
+            fi
+          done
+
+          # Delete old directories if any found
+          if [ ${#dirs_to_delete[@]} -gt 0 ]; then
+            echo "Deleting old directories:"
+            printf '%s\n' "${dirs_to_delete[@]}"
+            rm -rf "${dirs_to_delete[@]}"
+            
+            # Configure git
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            
+            # Commit and push changes if any files were deleted
+            git add -A
+            git commit -m "Cleanup: Remove reports older than 3 days" || echo "No changes to commit"
+            git push
+          else
+            echo "No old directories to clean up"
+          fi
+
+      # Deploy to gh-pages branch
       - name: Deploy to gh-pages branch
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: playwright-report
-          destination_dir: Playwright-report-${{ steps.timestamp.outputs.timestamp }}
+          destination_dir: ${{ github.sha }}-${{ steps.timestamp.outputs.timestamp }}
           keep_files: true
 
       - name: Generate and log Playwright report URLs

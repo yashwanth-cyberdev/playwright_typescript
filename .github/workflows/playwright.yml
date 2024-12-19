@@ -101,5 +101,5 @@ jobs:
         if: always()
         run: |
           repo_name=${{ github.repository }} && repo_name=${repo_name#*/}
-          reportUrl="https://${{ github.repository_owner }}.github.io/$repo_name/${{ github.sha }}-${{ steps.timestamp.outputs.timestamp }}/"
+          reportUrl="https://${{ github.repository_owner }}.github.io/$repo_name/"
           echo "Playwright Test Report available at: $reportUrl"

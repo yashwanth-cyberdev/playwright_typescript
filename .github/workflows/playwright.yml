@@ -143,9 +143,21 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: Generate and log Playwright report URLs
-        if: always()
+      - name: Playwright Test Report URL
+        id: report_url
         run: |
           repo_name=${{ github.repository }} && repo_name=${repo_name#*/}
-          report_url="https://${{ github.repository_owner }}.github.io/$repo_name/"
-          echo "Playwright Test Report available at: $report_url"
+          reportUrl="https://${{ github.repository_owner }}.github.io/$repo_name/"
+          echo "Playwright Test Report available at: $reportUrl"
+          echo "name=report_url=$reportUrl" >> $GITHUB_OUTPUT
+
+      - name: Notify Slack channel of Playwright
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_CHANNEL: playwright-project
+          SLACK_COLOR: "#3278BD"
+          SLACK_ICON: https://avatars0.githubusercontent.com/u/44036562?s=100&v=4
+          SLACK_MESSAGE: "Playwright Test Report available: ${{ steps.report_url.outputs.report_url }}"
+          SLACK_TITLE: Playwright Test Report
+          SLACK_USERNAME: Github Action Bot
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}

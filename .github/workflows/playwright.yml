@@ -149,7 +149,7 @@ jobs:
           repo_name=${{ github.repository }} && repo_name=${repo_name#*/}
           reportUrl="https://${{ github.repository_owner }}.github.io/$repo_name/"
           echo "Playwright Test Report available at: $reportUrl"
-          echo "name=report_url=$reportUrl" >> $GITHUB_OUTPUT
+          echo "report_url=$reportUrl" >> "$GITHUB_OUTPUT"
 
       - name: Notify Slack channel of Playwright
         uses: rtCamp/action-slack-notify@v2.0.2

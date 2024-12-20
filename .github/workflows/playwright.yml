@@ -114,7 +114,7 @@ jobs:
           destination_dir: ${{ github.sha }}-${{ steps.timestamp.outputs.timestamp }}
           keep_files: true
 
-        # Parse test results
+      # Parse test results
       - name: Parse test results
         id: test-results
         if: always()

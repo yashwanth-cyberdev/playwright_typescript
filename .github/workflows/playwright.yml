@@ -111,6 +111,28 @@ jobs:
           destination_dir: ${{ github.sha }}-${{ steps.timestamp.outputs.timestamp }}
           keep_files: true
 
+        # Parse test results
+      - name: Parse test results
+        id: test-results
+        if: always()
+        run: |
+          if [ -f "playwright-report/results.json" ]; then
+            # Parse JSON and extract test counts
+            passed=$(jq '.suites[].specs[].tests[] | select(.status=="passed") | .status' playwright-report/results.json | wc -l)
+            failed=$(jq '.suites[].specs[].tests[] | select(.status=="failed") | .status' playwright-report/results.json | wc -l)
+            skipped=$(jq '.suites[].specs[].tests[] | select(.status=="skipped") | .status' playwright-report/results.json | wc -l)
+            total=$((passed + failed + skipped))
+            
+            # Set outputs
+            echo "passed=$passed" >> $GITHUB_OUTPUT
+            echo "failed=$failed" >> $GITHUB_OUTPUT
+            echo "skipped=$skipped" >> $GITHUB_OUTPUT
+            echo "total=$total" >> $GITHUB_OUTPUT
+          else
+            echo "No test results found"
+            exit 1
+          fi
+
       - name: Generate and log Playwright report URLs
         if: always()
         run: |

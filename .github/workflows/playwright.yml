@@ -111,7 +111,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: playwright-report
-          destination_dir: ${{ github.sha }}-${{ steps.timestamp.outputs.timestamp }}
+          destination_dir: Playwright-report-${{ steps.timestamp.outputs.timestamp }}
           keep_files: true
 
       # Parse test results
@@ -136,11 +136,16 @@ jobs:
             exit 1
           fi
 
+      - name: Send Test Results to Slack
+        if: always()
+        run: |
+          npx slack-ctrf results ctrf/ctrf-report.json
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
       - name: Generate and log Playwright report URLs
         if: always()
         run: |
           repo_name=${{ github.repository }} && repo_name=${repo_name#*/}
-          pages_url="https://${{ github.repository_owner }}.github.io/$repo_name/"
-          branch_url="https://${{ github.repository_owner }}.github.io/$repo_name/${{ github.sha }}-${{ steps.timestamp.outputs.timestamp }}/"
-          echo "Playwright Test Report (Pages) available at: $pages_url"
-          echo "Playwright Test Report (Branch) available at: $branch_url"
+          report_url="https://${{ github.repository_owner }}.github.io/$repo_name/"
+          echo "Playwright Test Report available at: $report_url"

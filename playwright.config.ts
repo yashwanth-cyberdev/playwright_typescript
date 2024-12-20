@@ -26,6 +26,7 @@ const config: PlaywrightTestConfig = {
     ["json", { outputFile: "playwright-report/results.json" }],
     ["list"],
     ["@estruyf/github-actions-reporter"],
+    ["playwright-ctrf-json-reporter"],
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {

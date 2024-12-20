@@ -9,7 +9,8 @@
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.48.1",
-    "@types/node": "^22.7.7"
+    "@types/node": "^22.7.7",
+    "playwright-ctrf-json-reporter": "^0.0.18"
   },
   "dependencies": {
     "@estruyf/github-actions-reporter": "^1.9.2"

@@ -136,14 +136,14 @@ jobs:
             exit 1
           fi
 
-      - name: Publish CTRF Test Summary Results
-        run: npx github-actions-ctrf summary ctrf/ctrf-report.json
-        if: always()
+      # - name: Publish CTRF Test Summary Results
+      #   run: npx github-actions-ctrf summary ctrf/ctrf-report.json
+      #   if: always()
 
       - name: Send Test Results to Slack
         if: always()
         run: |
-          npx slack-ctrf results ctrf/ctrf-report.json
+          npx slack-ctrf summary ctrf/ctrf-report.json
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 

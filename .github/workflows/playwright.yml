@@ -136,6 +136,10 @@ jobs:
             exit 1
           fi
 
+      - name: Publish CTRF Test Summary Results
+        run: npx github-actions-ctrf summary ctrf/ctrf-report.json
+        if: always()
+
       - name: Send Test Results to Slack
         if: always()
         run: |

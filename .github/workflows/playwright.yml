@@ -140,6 +140,14 @@ jobs:
         run: npx github-actions-ctrf summary ctrf/ctrf-report.json
         if: always()
 
+        # Cleanup old reports
+      - name: Cleanup old reports
+        if: always()
+        run: |
+          cd gh-pages-branch
+          # Keep only reports from the last RETAIN_DAYS days
+          find . -maxdepth 1 -type d -mtime +5 -exec rm -rf {} +
+
       - name: Send Test Results to Slack
         if: always()
         run: |

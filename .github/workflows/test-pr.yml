@@ -47,7 +47,7 @@ jobs:
 
       - name: Upload CTRF report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ctrf-report-${{ matrix.shard }}
           path: ctrf
@@ -87,7 +87,7 @@ jobs:
           path: downloaded-merged-reports-as-blob # name of the folder where the download will be saved
 
       - name: Download CTRF reports
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           pattern: ctrf-report-*
           path: downloaded-ctrf-reports
@@ -96,7 +96,7 @@ jobs:
         # Merge CTRF reports
       - name: Install CTRF CLI and merge reports
         run: |
-          npx merge-ctrf ./downloaded-ctrf-reports --output-dir ./ctrf/ctrf-report.json
+          npx merge-ctrf ./downloaded-ctrf-reports --output-dir ./ctrf/ctrf-report-all.json
 
       - name: List files in the ctrf directory
         run: |
@@ -135,13 +135,13 @@ jobs:
       #   run: npm install -g github-actions-ctrf
 
       - name: Publish CTRF Test Summary Results
-        run: npx github-actions-ctrf summary ctrf/ctrf-report.json
+        run: npx github-actions-ctrf summary ctrf/ctrf-report-all.json
         if: always()
 
       - name: Send Test Results to Slack
         if: always()
         run: |
-          npx slack-ctrf results ctrf/ctrf-report.json
+          npx slack-ctrf results ctrf/ctrf-report-all.json
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 

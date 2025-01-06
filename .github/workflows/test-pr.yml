@@ -96,7 +96,7 @@ jobs:
         # Merge CTRF reports
       - name: Install CTRF CLI and merge reports
         run: |
-          npx merge-ctrf ./downloaded-ctrf-reports --output-dir ./test-ctrf/ctrf-report-all.json
+          npx merge-ctrf ./downloaded-ctrf-reports --output-dir ./test-ctrf
 
       - name: List files in the ctrf directory
         run: |
@@ -135,13 +135,13 @@ jobs:
       #   run: npm install -g github-actions-ctrf
 
       - name: Publish CTRF Test Summary Results
-        run: npx github-actions-ctrf summary test-ctrf/ctrf-report-all.json
+        run: npx github-actions-ctrf summary test-ctrf/ctrf-report.json
         if: always()
 
       - name: Send Test Results to Slack
         if: always()
         run: |
-          npx slack-ctrf results test-ctrf/ctrf-report-all.json
+          npx slack-ctrf results test-ctrf/ctrf-report.json
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 

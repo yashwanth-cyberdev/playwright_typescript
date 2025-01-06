@@ -93,12 +93,18 @@ jobs:
         with:
           pattern: ctrf-report-*
           path: downloaded-ctrf-reports
-          # merge-multiple: true
+          merge-multiple: true
+
+      - name: List files in the downloaded-ctrf-reports
+        run: |
+          echo "Files in ctrf directory:"
+          ls -l downloaded-ctrf-reports
 
         # Merge CTRF reports
       - name: Install CTRF CLI and merge reports
         run: |
           npx ctrf merge ./downloaded-ctrf-reports/* --output-dir ./merged-reports
+
       - name: List files in the ctrf directory
         run: |
           echo "Files in ctrf directory:"
@@ -149,7 +155,6 @@ jobs:
         env:
           SLACK_CHANNEL: playwright-project
           SLACK_COLOR: "#3278BD"
-          SLACK_ICON: https://avatars0.githubusercontent.com/u/44036562?s=100&v=4
           SLACK_MESSAGE: "Playwright Test Report available: ${{ steps.report_url.outputs.report_url }}"
           SLACK_TITLE: Playwright Test Report
           SLACK_USERNAME: Github Action Bot

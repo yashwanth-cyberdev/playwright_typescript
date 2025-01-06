@@ -91,11 +91,12 @@ jobs:
         with:
           pattern: ctrf-report-*
           path: downloaded-ctrf-reports
+          merge-multiple: true
 
         # Merge CTRF reports
       - name: Install CTRF CLI and merge reports
         run: |
-          npx merge-ctrf ./downloaded-ctrf-reports --output-dir ./ctrf
+          npx merge-ctrf ./downloaded-ctrf-reports --output-dir ./ctrf/ctrf-report.json
 
       - name: List files in the ctrf directory
         run: |

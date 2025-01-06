@@ -15,7 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1/2, 2/2]
+        shardIndex: [1, 2, 3, 4]
+        shardTotal: [4]
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,7 +34,7 @@ jobs:
         env:
           BASE_URL: ${{ secrets.BASE_URL }}
           USER_NAME: ${{ secrets.USER_NAME }}
-        run: npx playwright test --project=tests --shard ${{ matrix.shard }} --workers 2
+        run: npx playwright test --project=tests --shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --workers 2
 
       # Once playwright finishes it will create a folder called 'blob-report' where it will put all the reports
       - name: Upload blob report to GitHub Actions Artifacts
@@ -41,6 +43,14 @@ jobs:
         with:
           name: merged-reports-as-blob # name of the file you want to have once its uploaded
           path: blob-report # path where the reports are, from where to take the files.
+          retention-days: 90
+
+      - name: Upload CTRF report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ctrf-report-${{ matrix.shard }}
+          path: ctrf
           retention-days: 90
 
   merge-reports-and-upload:
@@ -76,6 +86,20 @@ jobs:
           name: merged-reports-as-blob # name of the file stored as artifact (as uploaded at the previous job)
           path: downloaded-merged-reports-as-blob # name of the folder where the download will be saved
 
+      - name: Download CTRF reports
+        uses: actions/download-artifact@v3
+        with:
+          pattern: ctrf-report-*
+          path: downloaded-ctrf-reports
+
+        # Merge CTRF reports
+      - name: Install CTRF CLI and merge reports
+        run: |
+          npm install -g ctrf-cli
+          npx ctrf merge ./downloaded-ctrf-reports
+          mkdir -p ctrf
+          mv merged.json ctrf/ctrf-report.json
+
       # Playwright will generate a report and store it inside a folder called '/playwright-report'
       - name: Merge the blobs into one single HTML Report
         run: npx playwright merge-reports --reporter html ./downloaded-merged-reports-as-blob
@@ -102,6 +126,10 @@ jobs:
         run: |
           reportUrl="https://${{ github.repository_owner }}.github.io/playwright_typescript/${{ steps.timestampid.outputs.timestamp }}/"
           echo "### Test results (link available after 20 secs) - $reportUrl" >> $GITHUB_STEP_SUMMARY
+          echo "report_url=$reportUrl" >> $GITHUB_OUTPUT
+
+      - name: Install CTRF reporter
+        run: npm install -g github-actions-ctrf
 
       - name: Publish CTRF Test Summary Results
         run: npx github-actions-ctrf summary ctrf/ctrf-report.json

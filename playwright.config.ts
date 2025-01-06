@@ -23,6 +23,7 @@ const config: PlaywrightTestConfig = {
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ["html"],
+    ["blob"],
     ["json", { outputFile: "playwright-report/results.json" }],
     ["list"],
     ["@estruyf/github-actions-reporter"],

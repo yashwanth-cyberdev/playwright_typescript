@@ -89,7 +89,6 @@ jobs:
       - name: Download CTRF reports
         uses: actions/download-artifact@v4
         with:
-          name: merge-reports-as-ctrf
           pattern: ctrf-report-*
           path: downloaded-ctrf-reports
           merge-multiple: true
@@ -97,7 +96,7 @@ jobs:
         # Merge CTRF reports
       - name: Install CTRF CLI and merge reports
         run: |
-          npx merge-ctrf ./merge-reports-as-ctrf --output-dir ./test-ctrf/ctrf-report-all.json
+          npx merge-ctrf ./downloaded-ctrf-reports --output-dir ./test-ctrf/ctrf-report-all.json
 
       - name: List files in the ctrf directory
         run: |

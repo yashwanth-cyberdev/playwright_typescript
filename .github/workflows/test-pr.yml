@@ -95,10 +95,12 @@ jobs:
         # Merge CTRF reports
       - name: Install CTRF CLI and merge reports
         run: |
-          npm install -g ctrf-cli
-          npx ctrf merge ./downloaded-ctrf-reports
-          mkdir -p ctrf
-          mv merged.json ctrf/ctrf-report.json
+          npx merge-ctrf ./downloaded-ctrf-reports --output-dir ./ctrf
+
+      - name: List files in the ctrf directory
+        run: |
+          echo "Files in ctrf directory:"
+          ls -l ctrf
 
       # Playwright will generate a report and store it inside a folder called '/playwright-report'
       - name: Merge the blobs into one single HTML Report

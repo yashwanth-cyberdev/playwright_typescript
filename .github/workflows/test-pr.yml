@@ -47,7 +47,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: merged-reports-as-blob
+          name: merged-reports-as-blob-${{ matrix.shard }}
           path: blob-report
           retention-days: 3
 
@@ -56,7 +56,6 @@ jobs:
     needs: [test]
     runs-on: ubuntu-latest
 
-    # Concurrency settings moved here
     concurrency:
       group: "pages"
       cancel-in-progress: true
@@ -84,7 +83,7 @@ jobs:
       - name: Download blob reports from GitHub Actions Artifacts
         uses: actions/download-artifact@v3
         with:
-          name: merged-reports-as-blob
+          pattern: merged-reports-as-blob-*
           path: downloaded-merged-reports-as-blob
 
       - name: Merge the blobs into one single HTML Report

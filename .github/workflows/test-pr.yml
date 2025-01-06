@@ -98,11 +98,11 @@ jobs:
         # Merge CTRF reports
       - name: Install CTRF CLI and merge reports
         run: |
-          npx ctrf merge ./downloaded-ctrf-reports --output-dir ./test-ctrf/
+          npx ctrf merge ./downloaded-ctrf-reports
       - name: List files in the ctrf directory
         run: |
           echo "Files in ctrf directory:"
-          ls -l test-ctrf
+          ls -l ctrf
       # Playwright will generate a report and store it inside a folder called '/playwright-report'
       - name: Merge the blobs into one single HTML Report
         run: npx playwright merge-reports --reporter html ./downloaded-merged-reports-as-blob
@@ -134,13 +134,13 @@ jobs:
       #   run: npm install -g github-actions-ctrf
 
       - name: Publish CTRF Test Summary Results
-        run: npx github-actions-ctrf summary test-ctrf/ctrf-report.json
+        run: npx github-actions-ctrf summary ctrf/ctrf-report.json
         if: always()
 
       - name: Send Test Results to Slack
         if: always()
         run: |
-          npx slack-ctrf results test-ctrf/ctrf-report.json
+          npx slack-ctrf results ctrf/ctrf-report.json
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 

@@ -43,13 +43,13 @@ jobs:
           path: blob-report
           retention-days: 90
 
-      - name: Upload CTRF report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ctrf-report-${{ matrix.shardIndex }}
-          path: ctrf
-          retention-days: 90
+      # - name: Upload CTRF report
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ctrf-report-${{ matrix.shardIndex }}
+      #     path: ctrf
+      #     retention-days: 90
 
   merge-reports-and-upload:
     if: always()
@@ -81,28 +81,29 @@ jobs:
           name: merged-reports-as-blob
           path: downloaded-merged-reports-as-blob
 
-      - name: Download CTRF reports
-        uses: actions/download-artifact@v4
-        with:
-          pattern: ctrf-report-*
-          path: downloaded-ctrf-reports
-          # merge-multiple: true
+      # - name: Download CTRF reports
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     pattern: ctrf-report-*
+      #     path: downloaded-ctrf-reports
+      #     # merge-multiple: true
 
-      - name: List files in the downloaded-ctrf-reports
-        run: |
-          echo "Files in ctrf directory:"
-          ls -l downloaded-ctrf-reports
-        #Merge CTRF reports
-      - name: Install CTRF CLI and merge reports
-        run: |
-          npx ctrf merge ./downloaded-merged-reports-as-blob --output-dir ./merged-reports
-      - name: List files in the ctrf directory
-        run: |
-          echo "Files in ctrf directory:"
-          ls -l merged-reports
+      # - name: List files in the downloaded-ctrf-reports
+      #   run: |
+      #     echo "Files in ctrf directory:"
+      #     ls -l downloaded-ctrf-reports
+      #   #Merge CTRF reports
+      # - name: Install CTRF CLI and merge reports
+      #   run: |
+      #     npx ctrf merge ./downloaded-merged-reports-as-blob --output-dir ./merged-reports
+
+      # - name: List files in the ctrf directory
+      #   run: |
+      #     echo "Files in ctrf directory:"
+      #     ls -l merged-reports
       # Playwright will generate a report and store it inside a folder called '/playwright-report'
       - name: Merge the blobs into one single HTML Report
-        run: npx playwright merge-reports --reporter html ./downloaded-merged-reports-as-blob
+        run: npx playwright merge-reports --reporter html,playwright-ctrf-json-reporter ./downloaded-merged-reports-as-blob
 
       - name: /[OPTIONAL] Upload full html report to artifacts for history
         if: always()
@@ -129,13 +130,13 @@ jobs:
       #   run: npm install -g github-actions-ctrf
 
       - name: Publish CTRF Test Summary Results
-        run: npx github-actions-ctrf summary merged-reports/ctrf-report.json
+        run: npx github-actions-ctrf summary ctrf/ctrf-report.json
         if: always()
 
       - name: Send Test Results to Slack
         if: always()
         run: |
-          npx slack-ctrf results merged-reports/ctrf-report.json
+          npx slack-ctrf results ctrf/ctrf-report.json
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 

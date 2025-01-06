@@ -8,8 +8,6 @@ on:
 
 jobs:
   setup-and-run-tests:
-    # setup and run the tests in parallel machines, with each machine uploading its own results to artifacts
-    # artifacts are shared among jobs and machines
     timeout-minutes: 15
     runs-on: ubuntu-latest
     environment: production
@@ -37,13 +35,12 @@ jobs:
           USER_NAME: ${{ secrets.USER_NAME }}
         run: npx playwright test --project=tests --shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --workers 2
 
-      # Once playwright finishes it will create a folder called 'blob-report' where it will put all the reports
       - name: Upload blob report to GitHub Actions Artifacts
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: merged-reports-as-blob # name of the file you want to have once its uploaded
-          path: blob-report # path where the reports are, from where to take the files.
+          name: merged-reports-as-blob
+          path: blob-report
           retention-days: 90
 
       - name: Upload CTRF report
@@ -55,7 +52,6 @@ jobs:
           retention-days: 90
 
   merge-reports-and-upload:
-    # Merge reports after playwright tests, even if some shards have failed
     if: always()
     needs: [setup-and-run-tests]
     runs-on: ubuntu-latest
@@ -65,10 +61,8 @@ jobs:
       timestamp: ${{ steps.timestampid.outputs.timestamp }}
 
     steps:
-      # We want a unique identifier to be used when we create subdirectories for our github pages with reports
       - name: Set a timestamp
         id: timestampid
-        # this will store current time with UTC in outputs.timestamp (eg of value: 20231028_233147Z)
         run: echo "timestamp=$(date --utc +%Y%m%d_%H%M%SZ)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
@@ -81,19 +75,18 @@ jobs:
       - name: Install jq
         run: sudo apt-get install jq
 
-      # we now download the reports uploaded previously to merge them and create one single html report
       - name: Download blob reports from GitHub Actions Artifacts
         uses: actions/download-artifact@v3
         with:
-          name: merged-reports-as-blob # name of the file stored as artifact (as uploaded at the previous job)
-          path: downloaded-merged-reports-as-blob # name of the folder where the download will be saved
+          name: merged-reports-as-blob
+          path: downloaded-merged-reports-as-blob
 
       - name: Download CTRF reports
         uses: actions/download-artifact@v4
         with:
           pattern: ctrf-report-*
           path: downloaded-ctrf-reports
-          merge-multiple: true
+          # merge-multiple: true
 
       - name: List files in the downloaded-ctrf-reports
         run: |
@@ -117,13 +110,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ steps.timestampid.outputs.timestamp }} # name of the file you want to have once its uploaded
-          path: playwright-report # path where the reports are, from where to take the files
+          name: playwright-report-${{ steps.timestampid.outputs.timestamp }}
+          path: playwright-report
           retention-days: 90
 
       - name: Push the new files to github pages
-        # This will create a separate branch called gh-pages where it will store only reports. And from where it will push all future changes
-        # to github pages. Having a separate branch will keep the reports and changes commits separate to your main/master
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

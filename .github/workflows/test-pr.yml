@@ -93,7 +93,7 @@ jobs:
         with:
           pattern: ctrf-report-*
           path: downloaded-ctrf-reports
-          merge-multiple: true
+          # merge-multiple: true
 
         # Merge CTRF reports
       - name: Install CTRF CLI and merge reports

@@ -49,7 +49,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ctrf-report-${{ matrix.shard }}
+          name: ctrf-report-${{ matrix.shardIndex }}
           path: ctrf
           retention-days: 90
 

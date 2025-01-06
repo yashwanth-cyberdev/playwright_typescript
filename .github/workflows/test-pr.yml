@@ -8,9 +8,10 @@ on:
 
 jobs:
   setup-and-run-tests:
+    # setup and run the tests in parallel machines, with each machine uploading its own results to artifacts
+    # artifacts are shared among jobs and machines
     timeout-minutes: 15
     runs-on: ubuntu-latest
-    environment: production
     strategy:
       fail-fast: false
       matrix:
@@ -33,14 +34,15 @@ jobs:
         env:
           BASE_URL: ${{ secrets.BASE_URL }}
           USER_NAME: ${{ secrets.USER_NAME }}
-        run: npx playwright test --project=tests --shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --workers 2 --reporter=ctrf
+        run: npx playwright test --project=tests --shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --workers 2
 
-      - name: Upload blob report
+      # Once playwright finishes it will create a folder called 'blob-report' where it will put all the reports
+      - name: Upload blob report to GitHub Actions Artifacts
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: blob-report-${{ matrix.shardIndex }}
-          path: blob-report
+          name: merged-reports-as-blob # name of the file you want to have once its uploaded
+          path: blob-report # path where the reports are, from where to take the files.
           retention-days: 90
 
       - name: Upload CTRF report
@@ -52,17 +54,19 @@ jobs:
           retention-days: 90
 
   merge-reports-and-upload:
+    # Merge reports after playwright tests, even if some shards have failed
     if: always()
     needs: [setup-and-run-tests]
     runs-on: ubuntu-latest
-    environment: production
 
     outputs:
       timestamp: ${{ steps.timestampid.outputs.timestamp }}
 
     steps:
+      # We want a unique identifier to be used when we create subdirectories for our github pages with reports
       - name: Set a timestamp
         id: timestampid
+        # this will store current time with UTC in outputs.timestamp (eg of value: 20231028_233147Z)
         run: echo "timestamp=$(date --utc +%Y%m%d_%H%M%SZ)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
@@ -75,11 +79,12 @@ jobs:
       - name: Install jq
         run: sudo apt-get install jq
 
-      - name: Download blob reports
+      # we now download the reports uploaded previously to merge them and create one single html report
+      - name: Download blob reports from GitHub Actions Artifacts
         uses: actions/download-artifact@v3
         with:
-          pattern: blob-report-*
-          path: downloaded-blob-reports
+          name: merged-reports-as-blob # name of the file stored as artifact (as uploaded at the previous job)
+          path: downloaded-merged-reports-as-blob # name of the folder where the download will be saved
 
       - name: Download CTRF reports
         uses: actions/download-artifact@v4
@@ -88,34 +93,34 @@ jobs:
           path: downloaded-ctrf-reports
           merge-multiple: true
 
-      - name: Install and merge CTRF reports
+        # Merge CTRF reports
+      - name: Install CTRF CLI and merge reports
         run: |
-          npm install -g ctrf-cli
-          mkdir -p test-ctrf
-          npx ctrf merge ./downloaded-ctrf-reports --output test-ctrf/ctrf-report.json
-
+          npx merge-ctrf ./downloaded-ctrf-reports --output-dir ./test-ctrf/ctrf-report-all.json
       - name: List files in the ctrf directory
         run: |
           echo "Files in ctrf directory:"
           ls -l test-ctrf
+      # Playwright will generate a report and store it inside a folder called '/playwright-report'
+      - name: Merge the blobs into one single HTML Report
+        run: npx playwright merge-reports --reporter html ./downloaded-merged-reports-as-blob
 
-      - name: Merge blob reports
-        run: npx playwright merge-reports --reporter html ./downloaded-blob-reports
-
-      - name: Upload full html report to artifacts
+      - name: /[OPTIONAL] Upload full html report to artifacts for history
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ steps.timestampid.outputs.timestamp }}
-          path: playwright-report
+          name: playwright-report-${{ steps.timestampid.outputs.timestamp }} # name of the file you want to have once its uploaded
+          path: playwright-report # path where the reports are, from where to take the files
           retention-days: 90
 
       - name: Push the new files to github pages
+        # This will create a separate branch called gh-pages where it will store only reports. And from where it will push all future changes
+        # to github pages. Having a separate branch will keep the reports and changes commits separate to your main/master
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./playwright-report
-          destination_dir: ${{ steps.timestampid.outputs.timestamp }}
+          publish_dir: ./playwright-report # from what folder to take files. It takes only contents
+          destination_dir: ${{ steps.timestampid.outputs.timestamp }} # a sub-directory where to publish to avoid overwriting other reports
 
       - name: Write URL in summary
         id: report_url
@@ -123,15 +128,17 @@ jobs:
           reportUrl="https://${{ github.repository_owner }}.github.io/playwright_typescript/${{ steps.timestampid.outputs.timestamp }}/"
           echo "### Test results (link available after 20 secs) - $reportUrl" >> $GITHUB_STEP_SUMMARY
           echo "report_url=$reportUrl" >> $GITHUB_OUTPUT
+      # - name: Install CTRF reporter
+      #   run: npm install -g github-actions-ctrf
 
       - name: Publish CTRF Test Summary Results
-        run: npx github-actions-ctrf summary test-ctrf/ctrf-report.json
+        run: npx github-actions-ctrf summary test-ctrf/ctrf-report-all.json
         if: always()
 
       - name: Send Test Results to Slack
         if: always()
         run: |
-          npx slack-ctrf results test-ctrf/ctrf-report.json
+          npx slack-ctrf results test-ctrf/ctrf-report-all.json
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 

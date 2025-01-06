@@ -12,6 +12,7 @@ jobs:
     # artifacts are shared among jobs and machines
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    environment: production
     strategy:
       fail-fast: false
       matrix:
@@ -58,6 +59,7 @@ jobs:
     if: always()
     needs: [setup-and-run-tests]
     runs-on: ubuntu-latest
+    environment: production
 
     outputs:
       timestamp: ${{ steps.timestampid.outputs.timestamp }}

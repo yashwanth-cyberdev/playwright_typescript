@@ -1,5 +1,4 @@
-name: Playwright Tests
-
+name: Playwright-Tests
 on:
   workflow_dispatch:
   push:
@@ -7,59 +6,43 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  NODE_VERSION: "20.10.0"
-
 jobs:
-  test:
-    timeout-minutes: 60
-    environment: production
+  setup-and-run-tests:
+    # setup and run the tests in parallel machines, with each machine uploading its own results to artifacts
+    # artifacts are shared among jobs and machines
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         shard: [1/2, 2/2]
-
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
-
-    concurrency:
-      group: "pages"
-      cancel-in-progress: true
-
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 20.10.0
+          node-version: 18
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright
+      - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Run regression only
-        if: github.event_name == 'push'
-        env:
-          BASE_URL: ${{ secrets.BASE_URL }}
-          USER_NAME: ${{ secrets.USER_NAME }}
-        run: npx playwright test --project=tests --shard ${{ matrix.shard }}
+      - name: Run Playwright tests
+        run: npx playwright test --shard ${{ matrix.shard }}
 
       # Once playwright finishes it will create a folder called 'blob-report' where it will put all the reports
       - name: Upload blob report to GitHub Actions Artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: merged-reports-as-blob # name of the file you want to have once its uploaded
           path: blob-report # path where the reports are, from where to take the files.
-          retention-days: 3
+          retention-days: 90
 
   merge-reports-and-upload:
     # Merge reports after playwright tests, even if some shards have failed
     if: always()
-    needs: [test]
+    needs: [setup-and-run-tests]
     runs-on: ubuntu-latest
 
     outputs:
@@ -75,7 +58,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 20.10.0
+          node-version: 18
       - name: Install dependencies
         run: npm ci
 

@@ -98,7 +98,7 @@ jobs:
         # Merge CTRF reports
       - name: Install CTRF CLI and merge reports
         run: |
-          npx merge-ctrf ./downloaded-ctrf-reports --output-dir ./test-ctrf/
+          npx ctrf merge ./downloaded-ctrf-reports --output-dir ./test-ctrf/
       - name: List files in the ctrf directory
         run: |
           echo "Files in ctrf directory:"

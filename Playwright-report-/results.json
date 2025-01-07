@@ -1,0 +1,81 @@
+{
+  "config": {
+    "configFile": "/home/runner/work/playwright_typescript/playwright_typescript/playwright.config.ts",
+    "rootDir": "/home/runner/work/playwright_typescript/playwright_typescript",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "playwright-report/results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "/home/runner/work/playwright_typescript/playwright_typescript/node_modules/@estruyf/github-actions-reporter/dist/index.js",
+        null
+      ],
+      [
+        "/home/runner/work/playwright_typescript/playwright_typescript/node_modules/playwright-ctrf-json-reporter/dist/index.js",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 15000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/playwright_typescript/playwright_typescript/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {},
+        "id": "tests",
+        "name": "tests",
+        "testDir": "/home/runner/work/playwright_typescript/playwright_typescript/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "version": "1.48.1",
+    "workers": 4,
+    "webServer": null
+  },
+  "suites": [],
+  "errors": [
+    {
+      "message": "Error: No tests found",
+      "stack": "Error: No tests found"
+    }
+  ],
+  "stats": {
+    "startTime": "2025-01-02T12:16:53.817Z",
+    "duration": 78.41200000000003,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -81,6 +81,13 @@ jobs:
           name: merged-reports-as-blob
           path: downloaded-merged-reports-as-blob
 
+      - name: Read package.json
+        uses: zvonimirsun/read-package-version-actions@v2
+        id: package-version
+
+      - name: Show version number
+        run: echo "Version is ${{ steps.package-version.outputs.version }}"
+
       # - name: Download CTRF reports
       #   uses: actions/download-artifact@v4
       #   with:

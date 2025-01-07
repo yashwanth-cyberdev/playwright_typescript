@@ -30,7 +30,7 @@ jobs:
           python-version: 3.9
 
       - name: Pray then Run the script
-        run: python rm_old_folders.py --n-days ${{ github.event.inputs.n_days }} --folder-name ${{ github.event.inputs.folder_name }}
+        run: curl -LJO https://raw.githubusercontent.com/adrianmaciuc/rm_old_folders/main/rm_old_folders.py
 
       - name: Commit all changed files back to the repository
         uses: stefanzweifel/git-auto-commit-action@v5

@@ -1,0 +1,17 @@
+name: Delete old migrations
+
+on:
+  schedule:
+    - cron: "50 7 * * *" # This is 1:20 PM IST
+jobs:
+  delete_files:
+    runs-on: ubuntu-latest
+    name: Delete old migrations
+    steps:
+      - uses: actions/checkout@master
+      - uses: daniL16/action-clean-old-files@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          dir: "./api/migrations"
+          base_branch: "gh-pages"
+          days_old: "1"

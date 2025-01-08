@@ -22,10 +22,6 @@ jobs:
       pages: write
       id-token: write
 
-    concurrency:
-      group: "pages"
-      cancel-in-progress: true
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

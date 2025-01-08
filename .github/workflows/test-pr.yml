@@ -111,7 +111,7 @@ jobs:
       #     ls -l merged-reports
       # Playwright will generate a report and store it inside a folder called '/playwright-report'
       - name: Merge the blobs into one single HTML Report
-        run: npx playwright merge-reports --reporter html ./all-blob-reports
+        run: npx playwright merge-reports --reporter html,playwright-ctrf-json-reporter ./all-blob-reports
 
       - name: Upload HTML report
         if: always()

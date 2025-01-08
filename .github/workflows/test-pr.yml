@@ -17,6 +17,15 @@ jobs:
         shardIndex: [1, 2, 3]
         shardTotal: [3]
 
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    concurrency:
+      group: "pages"
+      cancel-in-progress: true
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

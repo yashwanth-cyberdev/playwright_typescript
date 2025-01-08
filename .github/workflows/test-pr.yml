@@ -137,22 +137,19 @@ jobs:
       # - name: Install CTRF reporter
       #   run: npm install -g github-actions-ctrf
 
-      - name: Notify Slack with Playwright Test Results
+      - name: Send Test Results to Slack
         if: always()
         run: |
-          npx slack-ctrf results ctrf/ctrf-report.json --title "Github pipeline: playwright results"
-          curl -X POST -H 'Content-type: application/json' \
-            --data '{
-              "channel": "playwright-project",
-              "username": "Github Action Bot",
-              "attachments": [
-                {
-                  "title": "Playwright Test Report",
-                  "title_link": "${{ steps.report_url.outputs.report_url }}",
-                  "color": "#3278BD",
-                  "text": "Playwright Test Report available"
-                }
-              ]
-            }' ${{ secrets.SLACK_WEBHOOK_URL }}
+          npx slack-ctrf results ctrf/ctrf-report.json
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack channel of Playwright
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_CHANNEL: playwright-project
+          SLACK_COLOR: "#3278BD"
+          SLACK_MESSAGE: "Playwright Test Report available: ${{ steps.report_url.outputs.report_url }}"
+          SLACK_TITLE: Playwright Test Report
+          SLACK_USERNAME: Github Action Bot
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}

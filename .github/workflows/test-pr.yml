@@ -140,7 +140,7 @@ jobs:
       - name: Send Test Results to Slack
         if: always()
         run: |
-          npx slack-ctrf results ctrf/ctrf-report.json
+          npx slack-ctrf results ctrf/ctrf-report.json --title "Playwright test results(version: ${{ steps.package-version.outputs.version }})"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 

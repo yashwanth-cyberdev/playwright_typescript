@@ -149,7 +149,7 @@ jobs:
         env:
           SLACK_CHANNEL: playwright-project
           SLACK_COLOR: "#3278BD"
-          SLACK_MESSAGE: "Playwright Report available(Version: ${{ steps.package-version.outputs.version }}): ${{ steps.report_url.outputs.report_url }}"
+          SLACK_MESSAGE: "Playwright Report available(version: ${{ steps.package-version.outputs.version }}): ${{ steps.report_url.outputs.report_url }}"
           SLACK_TITLE: Playwright Test Report
           SLACK_USERNAME: Github Action Bot
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
